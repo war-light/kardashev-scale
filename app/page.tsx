@@ -1,65 +1,129 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+import { KardashevChart, KardashevPoint } from "@/components/KardashevChart";
+import { KardashevSidebar } from "@/components/KardashevSidebar";
+import { WorldStats } from "@/components/WorldStats";
+import { PovertyChart } from "@/components/PovertyChart";
+import { WorldDataService } from "@/lib/api-service";
 
 export default function Home() {
+  const [selectedPoint, setSelectedPoint] = useState<KardashevPoint | null>(null);
+  const [povertyHistory, setPovertyHistory] = useState<any[]>([]);
+  const [stats, setStats] = useState<{
+    population: { value: number; year: string } | null;
+    lifeExpectancy: { value: number; year: string } | null;
+    energyUsage: { value: number; year: string } | null;
+    topLifeExpectancy: any[];
+  }>({
+    population: null,
+    lifeExpectancy: null,
+    energyUsage: null,
+    topLifeExpectancy: [],
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [pop, poverty, life, energy, topLife] = await Promise.all([
+        WorldDataService.getPopulation(),
+        WorldDataService.getPovertyRate(),
+        WorldDataService.getLifeExpectancy(),
+        WorldDataService.getEnergyUsagePerCapita(),
+        WorldDataService.getTopCountriesLifeExpectancy(),
+      ]);
+
+      setPovertyHistory(poverty || []);
+
+      const getLatest = (data: any[]) => {
+        const latest = data?.find((d) => d.value !== null);
+        return latest ? { value: latest.value, year: latest.date } : null;
+      };
+
+      setStats({
+        population: getLatest(pop),
+        lifeExpectancy: getLatest(life),
+        energyUsage: getLatest(energy),
+        topLifeExpectancy: topLife,
+      });
+    };
+
+    fetchData();
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="min-h-screen bg-[#020617] text-white selection:bg-cyan-500/30">
+      {/* Background Glows */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-cyan-500/10 blur-[120px] rounded-full" />
+        <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-blue-600/10 blur-[100px] rounded-full" />
+        <div className="absolute -bottom-[10%] left-[20%] w-[50%] h-[50%] bg-purple-600/10 blur-[150px] rounded-full" />
+      </div>
+
+      <div className="relative z-10 mx-auto px-6 py-12 md:py-20 md:px-12">
+        <header className="mb-12 text-center space-y-4">
+          <h1 className="text-5xl md:text-7xl font-black tracking-tighter bg-linear-to-b from-white to-zinc-500 bg-clip-text text-transparent">
+            KARDASHEV SCALE
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto font-light leading-relaxed">
+            Measuring a civilization's level of technological advancement based on the amount of energy they
+            are able to use.
           </p>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 items-start mb-16">
+          <div className="space-y-8">
+            <section className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+              <KardashevChart onSelect={setSelectedPoint} />
+            </section>
+
+            <section className="grid md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
+              <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors group">
+                <h3 className="text-cyan-400 font-bold mb-2 group-hover:translate-x-1 transition-transform">
+                  Type I
+                </h3>
+                <p className="text-zinc-400 text-sm">
+                  A civilization that can harness all the energy of its home planet.
+                </p>
+              </div>
+              <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors group">
+                <h3 className="text-blue-400 font-bold mb-2 group-hover:translate-x-1 transition-transform">
+                  Type II
+                </h3>
+                <p className="text-zinc-400 text-sm">
+                  A civilization capable of harnessing the total energy output of its parent star.
+                </p>
+              </div>
+              <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors group">
+                <h3 className="text-purple-400 font-bold mb-2 group-hover:translate-x-1 transition-transform">
+                  Type III
+                </h3>
+                <p className="text-zinc-400 text-sm">
+                  A civilization that can control energy on the scale of its entire host galaxy.
+                </p>
+              </div>
+            </section>
+          </div>
+
+          <aside className="lg:sticky lg:top-8 h-auto lg:h-[calc(100vh-8rem)]">
+            <KardashevSidebar point={selectedPoint} />
+          </aside>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        <section className="mt-16 pt-16 border-t border-white/5">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-white mb-2">Global Indicators</h2>
+            <p className="text-zinc-500 text-sm">
+              Real-world data points reflecting humanity's current state.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-8">
+            <WorldStats stats={stats} />
+            <div className="animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-700">
+              <PovertyChart data={povertyHistory} />
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }
