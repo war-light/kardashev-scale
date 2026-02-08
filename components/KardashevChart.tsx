@@ -117,7 +117,7 @@ export function KardashevChart({ onSelect }: KardashevChartProps) {
   return (
     <Card className="w-full bg-black/40 border-white/10 backdrop-blur-xl shadow-2xl">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold bg-linear-to-r from-cyan-400 to-blue-600 bg-clip-text text-transparent">
+        <CardTitle className="text-2xl font-bold text-green-500">
           Humanity's Progress
         </CardTitle>
         <CardDescription className="text-white">

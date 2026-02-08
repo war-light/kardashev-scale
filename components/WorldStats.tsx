@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, TrendingDown, Heart, Zap, ExternalLink } from "lucide-react";
+import { PopulationChart } from "@/components/PopulationChart";
 
 interface StatCardProps {
   title: string;
@@ -62,9 +63,10 @@ interface WorldStatsProps {
     energyUsage: { value: number; year: string } | null;
     topLifeExpectancy: any[];
   };
+  populationHistory: any[];
 }
 
-export function WorldStats({ stats }: WorldStatsProps) {
+export function WorldStats({ stats, populationHistory }: WorldStatsProps) {
   const formatNumber = (num: number) => {
     if (num >= 1000000000) return (num / 1000000000).toFixed(2) + "B";
     if (num >= 1000000) return (num / 1000000).toFixed(2) + "M";
@@ -72,13 +74,15 @@ export function WorldStats({ stats }: WorldStatsProps) {
   };
 
   return (
+    
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-500">
       <StatCard
         title="World Population"
         value={stats.population ? formatNumber(stats.population.value) : "---"}
         year={stats.population?.year}
         icon={<Users className="w-4 h-4" />}
-        description="Total number of humans on Earth."
+        description={`Total number of humans on Earth.`}
+        extra={<PopulationChart data={populationHistory} />}
         color="blue"
         link={{ label: "Source", url: "https://data.worldbank.org/indicator/SP.POP.TOTL" }}
       />
